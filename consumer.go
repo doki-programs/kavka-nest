@@ -1,6 +1,7 @@
 package kavkanest
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,33 +10,45 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
+var clogger = log.New(os.Stdout, "[consumer] ", log.LstdFlags)
+
+var (
+	ErrEmptyGroupID = errors.New("group id is requird")
+)
+
 type Handler func(payload []byte) error
 
 type consumer struct {
-	*kafka.Consumer
+	groupID string
+	timeout time.Duration
+	kavka   *kafka.Consumer
 }
 
-func NewConsumer(c *Client, groupID string, timeout time.Duration) (*consumer, error) {
+func NewConsumer(client *Client, groupID string, timeout time.Duration) (*consumer, error) {
+
 	timeoutMs := int(timeout.Milliseconds())
 
-	if len(c.BrokersUrl) == 0 {
+	if len(client.BrokersUrl) == 0 {
 		return nil, ErrInvalidBrokersUrl
 	}
 
-	if c.Username == "" {
+	if client.Username == "" {
 		return nil, ErrInvalidUsername
 	}
 
-	if c.Password == "" {
+	if client.Password == "" {
 		return nil, ErrInvalidPassword
+	}
+	if groupID == "" {
+		return nil, ErrEmptyGroupID
 	}
 
 	config := &kafka.ConfigMap{
-		"metadata.broker.list":     c.BrokersUrl,
+		"metadata.broker.list":     client.BrokersUrl,
 		"security.protocol":        "SASL_SSL",
-		"sasl.mechanisms":          c.ScramAlgorithm,
-		"sasl.username":            c.Username,
-		"sasl.password":            c.Password,
+		"sasl.mechanisms":          client.ScramAlgorithm.String(),
+		"sasl.username":            client.Username,
+		"sasl.password":            client.Password,
 		"group.id":                 groupID,
 		"session.timeout.ms":       timeoutMs,
 		"auto.offset.reset":        "earliest",
@@ -49,11 +62,16 @@ func NewConsumer(c *Client, groupID string, timeout time.Duration) (*consumer, e
 		return nil, err
 	}
 
-	return &consumer{cons}, nil
+	return &consumer{
+		groupID: groupID,
+		timeout: timeout,
+		kavka:   cons,
+	}, nil
 }
 
-func (c *consumer) Consume(topics []string, timeout time.Duration, stop chan bool, fnHandler Handler) error {
-	if err := c.SubscribeTopics(topics, nil); err != nil {
+func (c *consumer) Consume(topics []string, stop chan bool, fnHandler Handler) error {
+
+	if err := c.kavka.SubscribeTopics(topics, nil); err != nil {
 		return err
 	}
 
@@ -63,26 +81,26 @@ func (c *consumer) Consume(topics []string, timeout time.Duration, stop chan boo
 	for run {
 		select {
 		case sig := <-stop:
-			fmt.Printf("Caught stop signal %v: terminating\n", sig)
+			clogger.Printf("Caught stop signal %v: terminating\n", sig)
 			run = false
 		default:
-			event := c.Poll(int(timeout.Milliseconds()))
+			event := c.kavka.Poll(int(c.timeout.Milliseconds()))
 			if event == nil {
 				continue
 			}
 
 			switch e := event.(type) {
 			case *kafka.Message:
-				fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
+				// fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
 				if e.Headers != nil {
 					fmt.Printf("%% Headers: %v\n", e.Headers)
 				}
 				if err := fnHandler(e.Value); err != nil {
-					log.Println(err)
+					clogger.Println(err)
 				}
-				_, err := c.StoreMessage(e)
+				_, err := c.kavka.StoreMessage(e)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "%% Error storing offset after message %s:\n", e.TopicPartition)
+					fmt.Fprintf(os.Stderr, "Error storing offset after message %s:\n", e.TopicPartition)
 				}
 			case kafka.Error:
 				// Errors should generally be considered
@@ -90,15 +108,19 @@ func (c *consumer) Consume(topics []string, timeout time.Duration, stop chan boo
 				// automatically recover.
 				// But in this example we choose to terminate
 				// the application if all brokers are down.
-				fmt.Fprintf(os.Stderr, "%% Error: %v: %v\n", e.Code(), e)
-				if e.Code() == kafka.ErrAllBrokersDown {
+				switch e.Code() {
+				case kafka.ErrAllBrokersDown:
 					run = false
+				case kafka.ErrTimedOut:
+					run = false
+				default:
+					fmt.Fprintf(os.Stderr, "Error: %v: %v\n", e.Code(), e)
 				}
 			default:
-				fmt.Printf("Ignored %v\n", e)
+				clogger.Printf("Ignored %v\n", e)
 			}
 		}
 	}
 
-	return c.Close()
+	return c.kavka.Close()
 }

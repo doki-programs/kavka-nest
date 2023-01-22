@@ -28,7 +28,7 @@ func NewProducer(c *Client) (*producer, error) {
 	config := &kafka.ConfigMap{
 		"metadata.broker.list": c.BrokersUrl,
 		"security.protocol":    "SASL_SSL",
-		"sasl.mechanisms":      c.ScramAlgorithm,
+		"sasl.mechanisms":      c.ScramAlgorithm.String(),
 		"sasl.username":        c.Username,
 		"sasl.password":        c.Password,
 		// "debug": "generic,broker,security",

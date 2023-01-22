@@ -21,7 +21,7 @@ func main() {
 	p, err := kavkanest.NewProducer(&kavkanest.Client{
 		Username:       os.Getenv("KAFKA_USERNAME"),
 		Password:       os.Getenv("KAFKA_PASSWORD"),
-		ScramAlgorithm: "SCRAM-SHA-256",
+		ScramAlgorithm: kavkanest.SCRAM_SHA_256,
 		BrokersUrl:     os.Getenv("KAFKA_BROKERS"),
 	})
 	if err != nil {
