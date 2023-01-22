@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	topic = "test"
+	topic = "default"
 )
 
 func main() {

@@ -116,8 +116,15 @@ func (c *consumer) Consume(topics []string, stop chan bool, fnHandler Handler) e
 				default:
 					fmt.Fprintf(os.Stderr, "Error: %v: %v\n", e.Code(), e)
 				}
+			case kafka.OffsetsCommitted:
+				if e.Error != nil {
+					clogger.Printf("failed to commit offsets >>> %s", e.Error.Error())
+				}
+				for _, topicPartition := range e.Offsets {
+					clogger.Printf("topic %s has been committed successfully", topicPartition)
+				}
 			default:
-				clogger.Printf("Ignored %v\n", e)
+				clogger.Printf("Ignored event >>> %v\n", e)
 			}
 		}
 	}
