@@ -2,17 +2,22 @@ package kavkanest
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
+type Handler func(payload []byte) error
+
 type consumer struct {
 	*kafka.Consumer
 }
 
 func NewConsumer(c *Client, groupID string, timeout time.Duration) (*consumer, error) {
+	timeoutMs := int(timeout.Milliseconds())
+
 	if len(c.BrokersUrl) == 0 {
 		return nil, ErrInvalidBrokersUrl
 	}
@@ -28,12 +33,11 @@ func NewConsumer(c *Client, groupID string, timeout time.Duration) (*consumer, e
 	config := &kafka.ConfigMap{
 		"metadata.broker.list":     c.BrokersUrl,
 		"security.protocol":        "SASL_SSL",
-		"sasl.mechanisms":          "SCRAM-SHA-256",
-		"sasl.mechanismss":         c.ScramAlgorithm,
+		"sasl.mechanisms":          c.ScramAlgorithm,
 		"sasl.username":            c.Username,
 		"sasl.password":            c.Password,
 		"group.id":                 groupID,
-		"session.timeout.ms":       timeout.Milliseconds,
+		"session.timeout.ms":       timeoutMs,
 		"auto.offset.reset":        "earliest",
 		"enable.auto.offset.store": false,
 
@@ -48,8 +52,7 @@ func NewConsumer(c *Client, groupID string, timeout time.Duration) (*consumer, e
 	return &consumer{cons}, nil
 }
 
-func (c *consumer) Consume(topics []string, timeout time.Duration, stop chan bool) error {
-
+func (c *consumer) Consume(topics []string, timeout time.Duration, stop chan bool, fnHandler Handler) error {
 	if err := c.SubscribeTopics(topics, nil); err != nil {
 		return err
 	}
@@ -70,10 +73,12 @@ func (c *consumer) Consume(topics []string, timeout time.Duration, stop chan boo
 
 			switch e := event.(type) {
 			case *kafka.Message:
-				fmt.Printf("%% Message on %s:\n%s\n",
-					e.TopicPartition, string(e.Value))
+				fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
 				if e.Headers != nil {
 					fmt.Printf("%% Headers: %v\n", e.Headers)
+				}
+				if err := fnHandler(e.Value); err != nil {
+					log.Println(err)
 				}
 				_, err := c.StoreMessage(e)
 				if err != nil {

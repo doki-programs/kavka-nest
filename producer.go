@@ -42,7 +42,7 @@ func NewProducer(c *Client) (*producer, error) {
 	return &producer{p}, nil
 }
 
-func (p *producer) AsyncProduce(topic string, messages /*,headers*/ map[string]string, timeout time.Duration) {
+func (p *producer) AsyncProduce(topic string, messages [][]byte /*,headers map[string]string,*/, timeout time.Duration) {
 
 	// Delivery report handler for produced messages
 	go func() {
@@ -66,14 +66,14 @@ func (p *producer) AsyncProduce(topic string, messages /*,headers*/ map[string]s
 	deliveryChan := make(chan kafka.Event)
 
 	// Produce messages to topic (asynchronously)
-	for /*key*/ _, msg := range messages {
+	for _, msg := range messages {
 		err := p.Produce(&kafka.Message{
 			TopicPartition: kafka.TopicPartition{
 				Topic:     &topic,
 				Partition: kafka.PartitionAny,
 			},
 			// Key:   []byte(key),
-			Value: []byte(msg),
+			Value: msg,
 			// Headers: kHeaders,
 		}, deliveryChan)
 		if err != nil {

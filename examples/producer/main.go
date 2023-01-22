@@ -28,11 +28,11 @@ func main() {
 		log.Fatal("failed to create new producer >>> ", err)
 	}
 
-	messages := map[string]string{}
+	messages := [][]byte{}
 	for i := 0; i < 9; i++ {
-		key := fmt.Sprintf("key%d", i)
+		// key := fmt.Sprintf("key%d", i)
 		value := fmt.Sprintf("value%d", i)
-		messages[key] = value
+		messages = append(messages, []byte(value))
 	}
 	p.AsyncProduce(topic, messages, 10*time.Second)
 	p.Close()
