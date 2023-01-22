@@ -15,5 +15,5 @@ type Client struct {
 	Username       string // The SASL username
 	Password       string // The SASL password
 	ScramAlgorithm string // The SASL SCRAM SHA algorithm SCRAM-SHA-256 or SCRAM-SHA-512 as mechanism
-	BrokersUrl     []string
+	BrokersUrl     string // comma separated brokers url
 }

@@ -2,6 +2,8 @@ package kavkanest
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -26,8 +28,7 @@ func NewProducer(c *Client) (*producer, error) {
 	config := &kafka.ConfigMap{
 		"metadata.broker.list": c.BrokersUrl,
 		"security.protocol":    "SASL_SSL",
-		"sasl.mechanisms":      "SCRAM-SHA-256",
-		"sasl.mechanismss":     c.ScramAlgorithm,
+		"sasl.mechanisms":      c.ScramAlgorithm,
 		"sasl.username":        c.Username,
 		"sasl.password":        c.Password,
 		// "debug": "generic,broker,security",
@@ -41,7 +42,7 @@ func NewProducer(c *Client) (*producer, error) {
 	return &producer{p}, nil
 }
 
-func (p *producer) AsyncProduce(topic string, messages, headers map[string]string, timeoutMs int) {
+func (p *producer) AsyncProduce(topic string, messages /*,headers*/ map[string]string, timeout time.Duration) {
 
 	// Delivery report handler for produced messages
 	go func() {
@@ -56,24 +57,38 @@ func (p *producer) AsyncProduce(topic string, messages, headers map[string]strin
 			}
 		}
 	}()
-	kHeaders := []kafka.Header{}
+	// kHeaders := []kafka.Header{}
 
-	for key, value := range headers {
-		kHeaders = append(kHeaders, kafka.Header{Key: key, Value: []byte(value)})
-	}
+	// for key, value := range headers {
+	// 	kHeaders = append(kHeaders, kafka.Header{Key: key, Value: []byte(value)})
+	// }
+
+	deliveryChan := make(chan kafka.Event)
+
 	// Produce messages to topic (asynchronously)
-	for key, msg := range messages {
-		p.Produce(&kafka.Message{
+	for /*key*/ _, msg := range messages {
+		err := p.Produce(&kafka.Message{
 			TopicPartition: kafka.TopicPartition{
 				Topic:     &topic,
 				Partition: kafka.PartitionAny,
 			},
-			Key:     []byte(key),
-			Value:   []byte(msg),
-			Headers: kHeaders,
-		}, nil)
+			// Key:   []byte(key),
+			Value: []byte(msg),
+			// Headers: kHeaders,
+		}, deliveryChan)
+		if err != nil {
+			log.Println("failed to produce message >>> ", err)
+		}
+		e := <-deliveryChan
+		m := e.(*kafka.Message)
+		if m.TopicPartition.Error != nil {
+			fmt.Printf("Delivery failed: %v\n", m.TopicPartition.Error)
+		} else {
+			fmt.Printf("Delivered message to topic %s [%d] at offset %v\n",
+				*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
+		}
 	}
-
+	close(deliveryChan)
 	// Wait for message deliveries before shutting down
-	p.Flush(timeoutMs)
+	p.Flush(int(timeout.Milliseconds()))
 }
