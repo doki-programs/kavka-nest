@@ -4,7 +4,7 @@
 
 ## **Producer Interface**
 
- In order to produce a kafka message in a topic/partition, just implement kavakanest's *Producer* interface: 
+ In order to produce a kafka message in a topic/partition, just implement kavakanest's ***Producer*** interface: 
 
 ```go
 type Producer interface {
