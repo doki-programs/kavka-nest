@@ -20,8 +20,8 @@ var (
 type producer struct {
 }
 
-func (p *producer) SASL() *kavkanest.SASL {
-	return &kavkanest.SASL{
+func (p *producer) KafkaClient() *kavkanest.KafkaClient {
+	return &kavkanest.KafkaClient{
 		Id:             "test-client-id",
 		Username:       os.Getenv("KAFKA_USERNAME"),
 		Password:       os.Getenv("KAFKA_PASSWORD"),

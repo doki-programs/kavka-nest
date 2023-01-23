@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrNilSASL         = errors.New("nil client")
+	ErrNilKafkaClient  = errors.New("nil client")
 	ErrEmptyBrokersUrl = errors.New("at least one broker is required")
 	ErrEmptyUsername   = errors.New("SASL username is required")
 	ErrEmptyPassword   = errors.New("SASL password is required")
@@ -22,7 +22,7 @@ func (s ScramAlg) String() string {
 	return string(s)
 }
 
-type SASL struct {
+type KafkaClient struct {
 	Id             string
 	Username       string   // The SASL username
 	Password       string   // The SASL password

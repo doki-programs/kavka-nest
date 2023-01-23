@@ -9,7 +9,7 @@ import (
 )
 
 type Producer interface {
-	SASL() *SASL
+	KafkaClient() *KafkaClient
 	TimeOut() time.Duration
 }
 
@@ -21,26 +21,27 @@ type producer struct {
 }
 
 func NewProducer(p Producer) (*producer, error) {
-	if p.SASL() == nil {
-		return nil, ErrNilSASL
+	if p.KafkaClient() == nil {
+		return nil, ErrNilKafkaClient
 	}
-	if len(p.SASL().BrokersUrl) == 0 {
+	if len(p.KafkaClient().BrokersUrl) == 0 {
 		return nil, ErrEmptyBrokersUrl
 	}
 
-	if p.SASL().Username == "" {
+	if p.KafkaClient().Username == "" {
 		return nil, ErrEmptyUsername
 	}
 
-	if p.SASL().Password == "" {
+	if p.KafkaClient().Password == "" {
 		return nil, ErrEmptyPassword
 	}
 	config := &kafka.ConfigMap{
-		"metadata.broker.list": p.SASL().BrokersUrl,
+		"client.id":            p.KafkaClient().Id,
+		"metadata.broker.list": p.KafkaClient().BrokersUrl,
 		"security.protocol":    "SASL_SSL",
-		"sasl.mechanisms":      p.SASL().ScramAlgorithm.String(),
-		"sasl.username":        p.SASL().Username,
-		"sasl.password":        p.SASL().Password,
+		"sasl.mechanisms":      p.KafkaClient().ScramAlgorithm.String(),
+		"sasl.username":        p.KafkaClient().Username,
+		"sasl.password":        p.KafkaClient().Password,
 		// "debug": "generic,broker,security",
 	}
 
@@ -58,15 +59,6 @@ func (p *producer) AsyncProduce(messages []*kafka.Message) {
 
 	// Produce messages to topic (asynchronously)
 	for _, msg := range messages {
-		// x := &kafka.Message{
-		// 	TopicPartition: kafka.TopicPartition{
-		// 		Topic:     &topic,
-		// 		Partition: kafka.PartitionAny,
-		// 	},
-		// 	Key:     []byte(),
-		// 	Value:   msg,
-		// 	Headers: kHeaders,
-		// }
 		err := p.connection.Produce(msg, deliveryChan)
 		if err != nil {
 			plog.Println("failed to produce message >>> ", err)

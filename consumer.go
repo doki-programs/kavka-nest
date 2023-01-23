@@ -11,7 +11,7 @@ import (
 )
 
 type Consumer interface {
-	SASL() *SASL
+	KafkaClient() *KafkaClient
 	TimeOut() time.Duration
 	Topics() []string
 	HandleMessage(msg *kafka.Message) error
@@ -31,18 +31,18 @@ type consumer struct {
 
 func NewConsumer(c Consumer, groupID string) (*consumer, error) {
 
-	if c.SASL() == nil {
-		return nil, ErrNilSASL
+	if c.KafkaClient() == nil {
+		return nil, ErrNilKafkaClient
 	}
-	if len(c.SASL().BrokersUrl) == 0 {
+	if len(c.KafkaClient().BrokersUrl) == 0 {
 		return nil, ErrEmptyBrokersUrl
 	}
 
-	if c.SASL().Username == "" {
+	if c.KafkaClient().Username == "" {
 		return nil, ErrEmptyUsername
 	}
 
-	if c.SASL().Password == "" {
+	if c.KafkaClient().Password == "" {
 		return nil, ErrEmptyPassword
 	}
 	if groupID == "" {
@@ -50,12 +50,12 @@ func NewConsumer(c Consumer, groupID string) (*consumer, error) {
 	}
 
 	config := &kafka.ConfigMap{
-		// "client.id":                c.SASL().Id,
-		"metadata.broker.list":     c.SASL().BrokersUrl,
+		"client.id":                c.KafkaClient().Id,
+		"metadata.broker.list":     c.KafkaClient().BrokersUrl,
 		"security.protocol":        "SASL_SSL",
-		"sasl.mechanisms":          c.SASL().ScramAlgorithm.String(),
-		"sasl.username":            c.SASL().Username,
-		"sasl.password":            c.SASL().Password,
+		"sasl.mechanisms":          c.KafkaClient().ScramAlgorithm.String(),
+		"sasl.username":            c.KafkaClient().Username,
+		"sasl.password":            c.KafkaClient().Password,
 		"group.id":                 groupID,
 		"session.timeout.ms":       int(c.TimeOut().Milliseconds()),
 		"auto.offset.reset":        "earliest",

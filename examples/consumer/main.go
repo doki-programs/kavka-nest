@@ -22,8 +22,8 @@ var (
 type sampleConsumer struct {
 }
 
-func (c *sampleConsumer) SASL() *kavkanest.SASL {
-	return &kavkanest.SASL{
+func (c *sampleConsumer) KafkaClient() *kavkanest.KafkaClient {
+	return &kavkanest.KafkaClient{
 		Id:             "test_client_id",
 		Username:       os.Getenv("KAFKA_USERNAME"),
 		Password:       os.Getenv("KAFKA_PASSWORD"),
