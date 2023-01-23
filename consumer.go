@@ -10,104 +10,104 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-var clogger = log.New(os.Stdout, "[consumer] ", log.LstdFlags)
+type Consumer interface {
+	SASL() *SASL
+	TimeOut() time.Duration
+	Topics() []string
+	HandleMessage(msg *kafka.Message) error
+}
+
+var clog = log.New(os.Stdout, "[consumer] ", log.LstdFlags)
 
 var (
 	ErrEmptyGroupID = errors.New("group id is requird")
 )
 
-type Handler func(payload []byte) error
-
 type consumer struct {
-	groupID string
-	timeout time.Duration
-	kavka   *kafka.Consumer
+	consumer   Consumer
+	groupID    string
+	connection *kafka.Consumer
 }
 
-func NewConsumer(client *Client, groupID string, timeout time.Duration) (*consumer, error) {
+func NewConsumer(c Consumer, groupID string) (*consumer, error) {
 
-	timeoutMs := int(timeout.Milliseconds())
-
-	if len(client.BrokersUrl) == 0 {
-		return nil, ErrInvalidBrokersUrl
+	if c.SASL() == nil {
+		return nil, ErrNilSASL
+	}
+	if len(c.SASL().BrokersUrl) == 0 {
+		return nil, ErrEmptyBrokersUrl
 	}
 
-	if client.Username == "" {
-		return nil, ErrInvalidUsername
+	if c.SASL().Username == "" {
+		return nil, ErrEmptyUsername
 	}
 
-	if client.Password == "" {
-		return nil, ErrInvalidPassword
+	if c.SASL().Password == "" {
+		return nil, ErrEmptyPassword
 	}
 	if groupID == "" {
 		return nil, ErrEmptyGroupID
 	}
 
 	config := &kafka.ConfigMap{
-		"metadata.broker.list":     client.BrokersUrl,
+		// "client.id":                c.SASL().Id,
+		"metadata.broker.list":     c.SASL().BrokersUrl,
 		"security.protocol":        "SASL_SSL",
-		"sasl.mechanisms":          client.ScramAlgorithm.String(),
-		"sasl.username":            client.Username,
-		"sasl.password":            client.Password,
+		"sasl.mechanisms":          c.SASL().ScramAlgorithm.String(),
+		"sasl.username":            c.SASL().Username,
+		"sasl.password":            c.SASL().Password,
 		"group.id":                 groupID,
-		"session.timeout.ms":       timeoutMs,
+		"session.timeout.ms":       int(c.TimeOut().Milliseconds()),
 		"auto.offset.reset":        "earliest",
 		"enable.auto.offset.store": false,
 
 		// "debug": "generic,broker,security",
 	}
 
-	cons, err := kafka.NewConsumer(config)
+	conn, err := kafka.NewConsumer(config)
 	if err != nil {
 		return nil, err
 	}
 
 	return &consumer{
-		groupID: groupID,
-		timeout: timeout,
-		kavka:   cons,
+		groupID:    groupID,
+		connection: conn,
+		consumer:   c,
 	}, nil
 }
 
-func (c *consumer) Consume(topics []string, stop chan bool, fnHandler Handler) error {
+func (c *consumer) Consume(stop chan bool) error {
 
-	if err := c.kavka.SubscribeTopics(topics, nil); err != nil {
+	if err := c.connection.SubscribeTopics(c.consumer.Topics(), nil); err != nil {
 		return err
 	}
-
 	// A signal handler or similar could be used to set this to false to break the loop.
 	run := true
 
 	for run {
 		select {
 		case sig := <-stop:
-			clogger.Printf("Caught stop signal %v: terminating\n", sig)
+			clog.Printf("Caught stop signal %v: terminating\n", sig)
 			run = false
 		default:
-			event := c.kavka.Poll(int(c.timeout.Milliseconds()))
+			event := c.connection.Poll(int(c.consumer.TimeOut()))
 			if event == nil {
 				continue
 			}
 
 			switch e := event.(type) {
 			case *kafka.Message:
-				// fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
-				if e.Headers != nil {
-					fmt.Printf("%% Headers: %v\n", e.Headers)
+				if err := c.consumer.HandleMessage(e); err != nil {
+					clog.Println(err)
 				}
-				if err := fnHandler(e.Value); err != nil {
-					clogger.Println(err)
-				}
-				_, err := c.kavka.StoreMessage(e)
+				_, err := c.connection.StoreMessage(e)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error storing offset after message %s:\n", e.TopicPartition)
 				}
 			case kafka.Error:
-				// Errors should generally be considered
-				// informational, the client will try to
-				// automatically recover.
-				// But in this example we choose to terminate
-				// the application if all brokers are down.
+				// Errors should generally be considered informational, the client will try to
+				// automatically recover. But we choose to terminate the consumer in case of
+				// all brokers are down or local timeout occcured.
 				switch e.Code() {
 				case kafka.ErrAllBrokersDown:
 					run = false
@@ -118,16 +118,16 @@ func (c *consumer) Consume(topics []string, stop chan bool, fnHandler Handler) e
 				}
 			case kafka.OffsetsCommitted:
 				if e.Error != nil {
-					clogger.Printf("failed to commit offsets >>> %s", e.Error.Error())
+					clog.Printf("failed to commit offsets >>> %s", e.Error.Error())
 				}
 				for _, topicPartition := range e.Offsets {
-					clogger.Printf("topic %s has been committed successfully", topicPartition)
+					clog.Printf("topic %s has been committed successfully", topicPartition)
 				}
 			default:
-				clogger.Printf("Ignored event >>> %v\n", e)
+				clog.Printf("Ignored event >>> %v\n", e)
 			}
 		}
 	}
 
-	return c.kavka.Close()
+	return c.connection.Close()
 }

@@ -5,9 +5,10 @@ import (
 )
 
 var (
-	ErrInvalidBrokersUrl = errors.New("at least one broker is required")
-	ErrInvalidUsername   = errors.New("SASL username is required")
-	ErrInvalidPassword   = errors.New("SASL password is required")
+	ErrNilSASL         = errors.New("nil client")
+	ErrEmptyBrokersUrl = errors.New("at least one broker is required")
+	ErrEmptyUsername   = errors.New("SASL username is required")
+	ErrEmptyPassword   = errors.New("SASL password is required")
 )
 
 type ScramAlg string
@@ -21,7 +22,7 @@ func (s ScramAlg) String() string {
 	return string(s)
 }
 
-type Client struct {
+type SASL struct {
 	Id             string
 	Username       string   // The SASL username
 	Password       string   // The SASL password
