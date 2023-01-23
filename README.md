@@ -69,7 +69,6 @@ Given a sample ***Producer*** interface implementation, you can initialize and p
 
  ```bash
     make producer
-
  ```
 
 ## **Consumer Interface**
@@ -170,7 +169,6 @@ Given a sample ***Consumer*** interface implementation, you can initialize and p
  
  
   ```bash
-    make producer
-    
+    make consumer
  ```
 
