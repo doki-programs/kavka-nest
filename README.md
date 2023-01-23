@@ -12,7 +12,7 @@ type Producer interface {
 	TimeOut() time.Duration
 }
 ```
-Given a remote kafka broker client's SASL credentials you can implement *KafkaClient* method.
+Given a remote kafka broker client's SASL credentials you can implement ***KafkaClient*** method.
 
 ```go
 var (
@@ -39,7 +39,7 @@ func (p *sampleProducer) TimeOut() time.Duration {
 
 ```
 
-Given a sample *Producer* interface implementation, you can initialize and produce kafka messages. Here is a simple example: 
+Given a sample ***Producer*** interface implementation, you can initialize and produce kafka messages. Here is a simple example: 
 
 ```go
 	p, err := kavkanest.NewProducer(&sampleProducer{})
@@ -69,7 +69,7 @@ Given a sample *Producer* interface implementation, you can initialize and produ
 
 ## **Consumer Interface**
 
- In order to consume a kafka message in topics, just implement kavakanest's *Consumer* interface: 
+ In order to consume a kafka message in topics, just implement kavakanest's ***Consumer*** interface: 
 
 ```go
 type Consumer interface {
@@ -80,7 +80,7 @@ type Consumer interface {
 }
 
 ```
-Like the *Producer* interface, you can implement *KafkaClient* method using your  remote kafka broker client's SASL credentials. 
+Like the *Producer* interface, you can implement ***KafkaClient*** method using your  remote kafka broker client's SASL credentials. 
 
 ```go
 var (
@@ -112,7 +112,7 @@ func (c *sampleConsumer) KafkaTopics() []string {
 
 ```
 
-ou can access to kafka messages headers, topic, partition, offset, timestamp, and so on in your *HandleMessage** implementation. Here is a simple implementation: 
+You can access to kafka messages headers, topic, partition, offset, timestamp, and so on in your ***HandleMessage*** implementation. Here is a simple implementation: 
 
 ```go
 func (c *sampleConsumer) HandleMessage(msg *kafka.Message) error {
@@ -133,7 +133,7 @@ func (c *sampleConsumer) HandleMessage(msg *kafka.Message) error {
 
 ```
 
-Given a sample *Consumer* interface implementation, you can initialize and produce kafka messages: 
+Given a sample ***Consumer*** interface implementation, you can initialize and produce kafka messages: 
 
 ```go
 	stop := make(chan bool)
