@@ -52,7 +52,7 @@ func (c *sampleConsumer) HandleMessage(msg *kafka.Message) error {
 	time := msg.Timestamp
 
 	log.Printf("key: %s, value: %s", string(msg.Key), string(msg.Value))
-	log.Printf("topic[partiotion]@offset: %s[%d]@%v %v", topic, partiotion, offset, time)
+	log.Printf("topic[partiotion]@offset: %s[%d]@%v created at %v", topic, partiotion, offset, time)
 	return nil
 }
 

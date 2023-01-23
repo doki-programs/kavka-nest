@@ -86,8 +86,8 @@ func (c *consumer) Consume(stop chan bool) error {
 
 	for run {
 		select {
-		case sig := <-stop:
-			clog.Printf("Caught stop signal %v: terminating\n", sig)
+		case <-stop:
+			clog.Printf("Caught stop signal >>> terminating...")
 			run = false
 		default:
 			event := c.connection.Poll(int(c.consumer.TimeOut()))
