@@ -17,10 +17,10 @@ var (
 	timeout = 10 * time.Second
 )
 
-type producer struct {
+type sampleProducer struct {
 }
 
-func (p *producer) KafkaClient() *kavkanest.KafkaClient {
+func (p *sampleProducer) KafkaClient() *kavkanest.KafkaClient {
 	return &kavkanest.KafkaClient{
 		Id:             "test-client-id",
 		Username:       os.Getenv("KAFKA_USERNAME"),
@@ -30,7 +30,7 @@ func (p *producer) KafkaClient() *kavkanest.KafkaClient {
 	}
 }
 
-func (p *producer) TimeOut() time.Duration {
+func (p *sampleProducer) TimeOut() time.Duration {
 	return timeout
 }
 
@@ -38,7 +38,7 @@ func main() {
 	if err := godotenv.Load("./examples/.env"); err != nil {
 		log.Fatal("failed to load client config >>> ", err)
 	}
-	p, err := kavkanest.NewProducer(&producer{})
+	p, err := kavkanest.NewProducer(&sampleProducer{})
 	if err != nil {
 		log.Fatal("failed to create new producer >>> ", err)
 	}
