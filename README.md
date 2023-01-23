@@ -65,7 +65,12 @@ Given a sample ***Producer*** interface implementation, you can initialize and p
 
 ```
 
- Full example is available in [producer examples](https://github.com/doki-programs/kavka-nest/blob/main/examples/producer/main.go)
+ Full example is available in [producer examples](https://github.com/doki-programs/kavka-nest/blob/main/examples/producer/main.go). Run this example by 
+
+ ```bash
+    make producer
+
+ ```
 
 ## **Consumer Interface**
 
@@ -161,5 +166,11 @@ Given a sample ***Consumer*** interface implementation, you can initialize and p
 
 ```
 
- Full example is available in [consumer examples](https://github.com/doki-programs/kavka-nest/blob/main/examples/consumer/main.go)
+ Full example is available in [consumer examples](https://github.com/doki-programs/kavka-nest/blob/main/examples/consumer/main.go). Run this example by 
+ 
+ 
+  ```bash
+    make producer
+    
+ ```
 
