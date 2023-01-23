@@ -13,7 +13,7 @@ import (
 type Consumer interface {
 	KafkaClient() *KafkaClient
 	TimeOut() time.Duration
-	Topics() []string
+	KafkaTopics() []string
 	HandleMessage(msg *kafka.Message) error
 }
 
@@ -78,10 +78,10 @@ func NewConsumer(c Consumer, groupID string) (*consumer, error) {
 
 func (c *consumer) Consume(stop chan bool) error {
 
-	if err := c.connection.SubscribeTopics(c.consumer.Topics(), nil); err != nil {
+	if err := c.connection.SubscribeTopics(c.consumer.KafkaTopics(), nil); err != nil {
 		return err
 	}
-	// A signal handler or similar could be used to set this to false to break the loop.
+
 	run := true
 
 	for run {

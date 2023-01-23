@@ -36,7 +36,7 @@ func (p *sampleConsumer) TimeOut() time.Duration {
 	return timeout
 }
 
-func (c *sampleConsumer) Topics() []string {
+func (c *sampleConsumer) KafkaTopics() []string {
 	return topics
 }
 
