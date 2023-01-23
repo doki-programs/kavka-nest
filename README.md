@@ -4,7 +4,7 @@
 
 ## **Producer Interface**
 
- In order to produce a kafka message in a topic/partition, Just implement kavakanest's *Producer* interface: 
+ In order to produce a kafka message in a topic/partition, just implement kavakanest's *Producer* interface: 
 
 ```go
 type Producer interface {
@@ -65,11 +65,11 @@ Given a sample *Producer* interface implementation, you can initialize and produ
 
 ```
 
- Full example is available in (producer examples)[https://github.com/doki-programs/kavka-nest/blob/main/examples/producer/main.go]
+ Full example is available in [producer examples](https://github.com/doki-programs/kavka-nest/blob/main/examples/producer/main.go)
 
 ## **Consumer Interface**
 
- In order to consume a kafka message in topics, Just implement kavakanest's *Consumer* interface: 
+ In order to consume a kafka message in topics, just implement kavakanest's *Consumer* interface: 
 
 ```go
 type Consumer interface {
@@ -161,5 +161,5 @@ Given a sample *Consumer* interface implementation, you can initialize and produ
 
 ```
 
- Full example is available in (consumer examples)[https://github.com/doki-programs/kavka-nest/blob/main/examples/consumer/main.go]
+ Full example is available in [consumer examples](https://github.com/doki-programs/kavka-nest/blob/main/examples/consumer/main.go)
 
