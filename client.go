@@ -22,10 +22,24 @@ func (s ScramAlg) String() string {
 	return string(s)
 }
 
+type DebugLevel string
+
+var (
+	DEBUG_LEVEL_GENERIC  DebugLevel = "generic"
+	DEBUG_LEVEL_BROKER   DebugLevel = "broker"
+	DEBUG_LEVEL_SECURITY DebugLevel = "security"
+	DEBUG_LEVEL_ALL      DebugLevel = "generic,broker,security"
+)
+
+func (s DebugLevel) String() string {
+	return string(s)
+}
+
 type KafkaClient struct {
 	Id             string
-	Username       string   // The SASL username
-	Password       string   // The SASL password
-	ScramAlgorithm ScramAlg // The SASL SCRAM SHA algorithm SCRAM-SHA-256 or SCRAM-SHA-512 as mechanism
-	BrokersUrl     string   // comma separated brokers url
+	Username       string     // The SASL username
+	Password       string     // The SASL password
+	ScramAlgorithm ScramAlg   // The SASL SCRAM SHA algorithm SCRAM-SHA-256 or SCRAM-SHA-512 as mechanism
+	BrokersUrl     string     // Comma separated brokers url
+	DebugLevel     DebugLevel // Debug level
 }

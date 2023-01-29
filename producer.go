@@ -1,6 +1,7 @@
 package kavkanest
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -42,7 +43,10 @@ func NewProducer(p Producer) (*producer, error) {
 		"sasl.mechanisms":      p.KafkaClient().ScramAlgorithm.String(),
 		"sasl.username":        p.KafkaClient().Username,
 		"sasl.password":        p.KafkaClient().Password,
-		// "debug": "generic,broker,security",
+	}
+
+	if p.KafkaClient().DebugLevel != "" {
+		config.Set(fmt.Sprintf("debug=%s", p.KafkaClient().DebugLevel.String()))
 	}
 
 	conn, err := kafka.NewProducer(config)

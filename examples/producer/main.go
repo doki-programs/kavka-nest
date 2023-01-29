@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	topic   = "default"
+	topic   = "sample-topic"
 	timeout = 10 * time.Second
 )
 
@@ -27,6 +27,7 @@ func (p *sampleProducer) KafkaClient() *kavkanest.KafkaClient {
 		Password:       os.Getenv("KAFKA_PASSWORD"),
 		ScramAlgorithm: kavkanest.SCRAM_SHA_256,
 		BrokersUrl:     os.Getenv("KAFKA_BROKERS"),
+		DebugLevel:     kavkanest.DEBUG_LEVEL_ALL,
 	}
 }
 

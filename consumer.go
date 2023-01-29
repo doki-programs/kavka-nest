@@ -60,8 +60,10 @@ func NewConsumer(c Consumer, groupID string) (*consumer, error) {
 		"session.timeout.ms":       int(c.TimeOut().Milliseconds()),
 		"auto.offset.reset":        "earliest",
 		"enable.auto.offset.store": false,
+	}
 
-		// "debug": "generic,broker,security",
+	if c.KafkaClient().DebugLevel != "" {
+		config.Set(fmt.Sprintf("debug=%s", c.KafkaClient().DebugLevel.String()))
 	}
 
 	conn, err := kafka.NewConsumer(config)
