@@ -41,6 +41,8 @@ func (p *sampleProducer) TimeOut() time.Duration {
 
 ```
 
+You can use a debug level to see more information in your console.
+
 Given a sample ***Producer*** interface implementation, you can initialize and produce kafka messages. Here is a simple example: 
 
 ```go
