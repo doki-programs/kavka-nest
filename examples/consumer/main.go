@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -72,11 +73,11 @@ func main() {
 		}
 	}()
 
-	log.Println("You will recieve messages with this template: ")
-	log.Printf("key: %s, value: %s", "a message key", "a message value")
-	log.Println("topic[partition]@offset created at \"a datetime\"")
+	fmt.Println("You will recieve messages with this template: ")
+	fmt.Printf("key: %s, value: %s", "a message key", "a message value")
+	fmt.Println("topic[partition]@offset created at \"a datetime\"")
 
-	log.Println("Press Ctrl+C to stop consuming...")
+	fmt.Println("Press Ctrl+C to stop consuming...")
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT)
 	defer signal.Stop(signals)
