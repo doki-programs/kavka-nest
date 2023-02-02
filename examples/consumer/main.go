@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -54,7 +53,7 @@ func (c *sampleConsumer) HandleMessage(msg *kafka.Message) error {
 	time := msg.Timestamp
 
 	log.Printf("key: %s, value: %s", string(msg.Key), string(msg.Value))
-	log.Printf("topic[partiotion]@offset: %s[%d]@%v created at %v", topic, partiotion, offset, time)
+	log.Printf("%s[%d]@%v created at %v", topic, partiotion, offset, time)
 	return nil
 }
 
@@ -73,7 +72,11 @@ func main() {
 		}
 	}()
 
-	fmt.Println("Press Ctrl+C to stop consuming...")
+	log.Println("You will recieve messages with this template: ")
+	log.Printf("key: %s, value: %s", "a message key", "a message value")
+	log.Println("topic[partition]@offset created at \"a datetime\"")
+
+	log.Println("Press Ctrl+C to stop consuming...")
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT)
 	defer signal.Stop(signals)
