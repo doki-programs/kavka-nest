@@ -29,7 +29,9 @@ func (p *sampleProducer) KafkaClient() *kavkanest.KafkaClient {
 		Username:       os.Getenv("KAFKA_USERNAME"),
 		Password:       os.Getenv("KAFKA_PASSWORD"),
 		ScramAlgorithm: kavkanest.SCRAM_SHA_256,
+		CertLocation:   os.Getenv("CERT_LOCATION"),
 		BrokersUrl:     os.Getenv("KAFKA_BROKERS"),
+		// DebugLevel:     kavkanest.DEBUG_LEVEL_ALL,
 	}
 }
 
@@ -102,7 +104,9 @@ func (c *sampleConsumer) KafkaClient() *kavkanest.KafkaClient {
 		Username:       os.Getenv("KAFKA_USERNAME"),
 		Password:       os.Getenv("KAFKA_PASSWORD"),
 		ScramAlgorithm: kavkanest.SCRAM_SHA_256,
+		CertLocation:   os.Getenv("CERT_LOCATION"),
 		BrokersUrl:     os.Getenv("KAFKA_BROKERS"),
+		// DebugLevel:     kavkanest.DEBUG_LEVEL_ALL,
 	}
 }
 
