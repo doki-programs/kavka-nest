@@ -14,7 +14,7 @@ type Producer interface {
 	TimeOut() time.Duration
 }
 
-var plog = log.New(os.Stdout, "[Producer]", log.LstdFlags)
+var plog = log.New(os.Stdout, "[Producer] ", log.LstdFlags)
 
 type producer struct {
 	producer   Producer
@@ -22,19 +22,8 @@ type producer struct {
 }
 
 func NewProducer(p Producer) (*producer, error) {
-	if p.KafkaClient() == nil {
-		return nil, ErrNilKafkaClient
-	}
-	if len(p.KafkaClient().BrokersUrl) == 0 {
-		return nil, ErrEmptyBrokersUrl
-	}
-
-	if p.KafkaClient().Username == "" {
-		return nil, ErrEmptyUsername
-	}
-
-	if p.KafkaClient().Password == "" {
-		return nil, ErrEmptyPassword
+	if err := p.KafkaClient().Validate(); err != nil {
+		return nil, err
 	}
 	config := &kafka.ConfigMap{
 		"client.id":            p.KafkaClient().Id,
@@ -43,6 +32,7 @@ func NewProducer(p Producer) (*producer, error) {
 		"sasl.mechanisms":      p.KafkaClient().ScramAlgorithm.String(),
 		"sasl.username":        p.KafkaClient().Username,
 		"sasl.password":        p.KafkaClient().Password,
+		"ssl.ca.location":      p.KafkaClient().CertLocation,
 	}
 
 	if p.KafkaClient().DebugLevel != "" {

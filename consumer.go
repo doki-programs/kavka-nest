@@ -31,20 +31,10 @@ type consumer struct {
 
 func NewConsumer(c Consumer, groupID string) (*consumer, error) {
 
-	if c.KafkaClient() == nil {
-		return nil, ErrNilKafkaClient
-	}
-	if len(c.KafkaClient().BrokersUrl) == 0 {
-		return nil, ErrEmptyBrokersUrl
+	if err := c.KafkaClient().Validate(); err != nil {
+		return nil, err
 	}
 
-	if c.KafkaClient().Username == "" {
-		return nil, ErrEmptyUsername
-	}
-
-	if c.KafkaClient().Password == "" {
-		return nil, ErrEmptyPassword
-	}
 	if groupID == "" {
 		return nil, ErrEmptyGroupID
 	}
@@ -56,6 +46,7 @@ func NewConsumer(c Consumer, groupID string) (*consumer, error) {
 		"sasl.mechanisms":          c.KafkaClient().ScramAlgorithm.String(),
 		"sasl.username":            c.KafkaClient().Username,
 		"sasl.password":            c.KafkaClient().Password,
+		"ssl.ca.location":          c.KafkaClient().CertLocation,
 		"group.id":                 groupID,
 		"session.timeout.ms":       int(c.TimeOut().Milliseconds()),
 		"auto.offset.reset":        "earliest",

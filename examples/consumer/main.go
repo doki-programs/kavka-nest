@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	topics  = []string{"sample-topic"}
+	topics  = []string{"quickstart"}
 	groupID = "test-consumer-group"
 	timeout = 60 * time.Second
 )
@@ -28,8 +28,9 @@ func (c *sampleConsumer) KafkaClient() *kavkanest.KafkaClient {
 		Username:       os.Getenv("KAFKA_USERNAME"),
 		Password:       os.Getenv("KAFKA_PASSWORD"),
 		ScramAlgorithm: kavkanest.SCRAM_SHA_256,
+		CertLocation:   os.Getenv("CERT_LOCATION"),
 		BrokersUrl:     os.Getenv("KAFKA_BROKERS"),
-		DebugLevel:     kavkanest.DEBUG_LEVEL_ALL,
+		// DebugLevel:     kavkanest.DEBUG_LEVEL_ALL,
 	}
 }
 
